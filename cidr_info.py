@@ -2,6 +2,9 @@ import argparse
 import math
 import re
 
+class CIDRException(Exception):
+    pass
+
 
 def _validate_and_split(cidr_str):
     """ Validate CIDR string and return a list of cidr parts
@@ -10,7 +13,7 @@ def _validate_and_split(cidr_str):
     """
     match = re.match(r"(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})$", cidr_str)
     if not match:
-        raise Exception("'{}' not a valid cidr notation".format(cidr_str))
+        raise CIDRException("'{}' not a valid cidr notation".format(cidr_str))
 
     # convert all pieces of notation to a list on integers
     try:
@@ -21,11 +24,11 @@ def _validate_and_split(cidr_str):
     # validate octet values
     for octet in parts[0:4]:
         if octet < 0 or octet > 255:
-            raise Exception("ERROR: octet '{}' not in between 0-255".format(octet))
+            raise CIDRException("ERROR: octet '{}' not in between 0-255".format(octet))
 
     # validate netmask value
     if parts[-1] < 0 or parts[-1] > 32:
-        raise Exception("ERROR: netmask '{}' not in between 0-32".format(parts[-1]))
+        raise CIDRException("ERROR: netmask '{}' not in between 0-32".format(parts[-1]))
 
     return parts
 
@@ -83,7 +86,7 @@ def main():
 
     try:
         info = cidr_info(args.cidr)
-    except Exception as err:
+    except CIDRException as err:
         raise SystemExit(err)
 
     print("NETWORK: ", info["network"])
